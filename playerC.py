@@ -36,11 +36,11 @@ def chooseBet():
 
 while True:
     if relayBaton:
-        os("clear")
+        os.system("clear")
 
         # Makes choice
         choice = chooseBet()
-        os("clear")
+        os.system("clear")
 
         # Sends to next
         marker = b'9'
