@@ -1,6 +1,7 @@
 import socket
 import sys
 import os
+from dice import *
 
 # Types
 BATON = '1'
