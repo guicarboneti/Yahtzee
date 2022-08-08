@@ -55,6 +55,7 @@ def updateValues():
     print("update values")
 
 def makeBet(data):
+    os.system("clear")
     print("Deseja fazer a seguinte aposta? (y/n)")
     print("Aposta: " + betNames[int(data[4])])
     price = int(data[5]) + 1
@@ -75,6 +76,7 @@ def makeBet(data):
         else:
             print("Não entendi, escolha entre y/n")
 
+    os.system("clear")
     return makeChoice
     
 
@@ -127,13 +129,22 @@ while True:
                         awaitBet = False
 
         # End of round    
-        #updateValues()
-        #marker = str.encode(STARTMARKER)
-        #msgType = str.encode(RESULT)
-        #size = b'0'
-        #parity = b'0'
-        #message = marker + msgType + size + parity
-        #mySocket.sendto(message, (IP, ADDSEND))
+        updateValues()
+        marker = str.encode(STARTMARKER)
+        msgType = str.encode(END)
+        size = b'0'
+        parity = b'0'
+        message = marker + msgType + size + parity
+        mySocket.sendto(message, (IP, ADDSEND))
+
+        # Awaits other players be up-to-date
+        awaitEnd = True
+        while awaitEnd:
+            data, addr = mySocket.recvfrom(1024)
+            if addr[1] == ADDREC:
+                data = data.decode("utf-8")
+                if data[0] == STARTMARKER and data[1] == END:
+                    awaitEnd = False
 
         # Sends baton
         marker = str.encode(STARTMARKER)
@@ -151,7 +162,7 @@ while True:
             data = data.decode("utf-8")
             if data[0] == STARTMARKER:
 
-                # Message about new bet
+                # Message about new bet offer
                 if data[1] == BET:
                     betDecision = makeBet(data)
                     if betDecision:
@@ -169,14 +180,41 @@ while True:
 
                 # Message to play game
                 elif data[1] == PLAY:
-                    throwDices()
-                    updateValues()
+                    if data[3] == NAME:
+                        throwDices()
 
+                        # Send results to relay baton holder
+                        marker = str.encode(STARTMARKER)
+                        msgType = str.encode(RESULT)
+                        size = b'0'
+                        parity = b'0'
+                        message = marker + msgType + size + parity
+                        mySocket.sendto(message, (IP, ADDSEND))
+                    else:
+                        mySocket.sendto(str.encode(data), (IP, ADDSEND))
+
+                # Message with round results
+                # Send it to the next player until it reaches relay baton holder
                 elif data[1] == RESULT:
-                    updateValues()
+                    mySocket.sendto(str.encode(data), (IP, ADDSEND))
 
+                # Message about end of round
+                # Update values and send it to the next player until it reaches relay baton holder
+                elif data[1] == END:
+                    updateValues()
+                    mySocket.sendto(str.encode(data), (IP, ADDSEND))
+
+                # Receive relay baton
                 elif data[1] == BATON:
                     relayBaton = True
 
+                # Message to exit
+                # Sends message to next player and exits
                 elif data[1] == EXIT:
-                    print("EXIT")
+                    marker = str.encode(STARTMARKER)
+                    msgType = str.encode(EXIT)
+                    size = b'0'
+                    parity = b'0'
+                    message = marker + msgType + size + parity
+                    mySocket.sendto(message, (IP, ADDSEND))
+                    sys.exit(0)
