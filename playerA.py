@@ -1,7 +1,6 @@
 import socket
 import sys
 import os
-from unittest import result
 
 # Types
 BATON = '1'
