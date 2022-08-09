@@ -2,6 +2,7 @@ import socket
 import sys
 import os
 from dice import *
+from makeBet import *
 
 # Types
 BATON = '1'
@@ -49,37 +50,16 @@ def chooseBet():
     return (int(choice) - 1)
 
 # Game function
-def throwDices():
-    print("throw dices")
+def throwDices(data):
+    gameResult = dice()
+    if gameResult == int(data[4]):
+        return betValues[gameResult] - int(data)[5]
+    else:
+        return - int(data[5])
 
-def updateValues():
-    print("update values")
-
-def makeBet(data):
-    os.system("clear")
-    print("Deseja fazer a seguinte aposta? (y/n)")
-    print("Aposta: " + betNames[int(data[4])])
-    price = int(data[5]) + 1
-    print("Custo: " + str(price))
-
-    awaitChoice = True
-    makeChoice = False
-
-    while awaitChoice:
-        choice = input()
-        if choice == "y" or choice == "Y":
-            print("Yes")
-            awaitChoice = False
-            makeChoice = True
-        elif choice == "n" or choice == "N":
-            print("No")
-            awaitChoice = False
-        else:
-            print("Não entendi, escolha entre y/n")
-
-    os.system("clear")
-    return makeChoice
-    
+def updateValues(name, value):
+    chips[name] = chips[name] + value
+    print(chips)
 
 while True:
     if relayBaton:
@@ -90,12 +70,12 @@ while True:
         os.system("clear")
 
         # Sends to next
-        marker = str.encode(STARTMARKER)
-        msgType = str.encode(BET)
-        size = b'3'
-        data = str.encode(NAME + str(choice)+ '1')
-        parity = b'0'
-        message = marker + msgType + size + data + parity
+        marker = STARTMARKER
+        msgType = BET
+        size = '3'
+        data = NAME + str(choice) + '1'
+        parity = '0'
+        message = str.encode(marker + msgType + size + data + parity)
         mySocket.sendto(message, (IP, ADDSEND))
 
         # Awaits return
@@ -110,33 +90,54 @@ while True:
         # Decides if it bets or passes to gambler
         if data[3] == NAME:
             # Plays game
-            throwDices()
+            gameResult = throwDices(data)
+            updateValues(NAME, gameResult)
+
+            # End of round
+            marker = STARTMARKER
+            msgType = END
+            size = '2' if gameResult > 0 and gameResult < 10 else '3'
+            data = NAME + str(gameResult)
+            parity = '0'
+            message = str.encode(marker + msgType + size + data + parity)
+            mySocket.sendto(message, (IP, ADDSEND))
+
         else:
             # Sends message to gambler
-            marker = str.encode(STARTMARKER)
-            msgType = str.encode(PLAY)
-            size = b'3'
-            data = str.encode(data[3] + data[4] + data[5])
-            parity = b'0'
-            message = marker + msgType + size + data + parity
+            marker = STARTMARKER
+            msgType = PLAY
+            size = '3'
+            # 3: name, 4: bet made, 5: cost
+            data = data[3] + data[4] + data[5]
+            parity = '0'
+            message = str.encode(marker + msgType + size + data + parity)
             mySocket.sendto(message, (IP, ADDSEND))
 
             # Awaits return
-            while awaitBet:
+            awaitRet = True
+            while awaitRet:
                 data, addr = mySocket.recvfrom(1024)
                 if addr[1] == ADDREC:
                     data = data.decode("utf-8")
                     if data[0] == STARTMARKER and data[1] == RESULT:
-                        awaitBet = False
+                        awaitRet = False
 
-        # End of round    
-        updateValues()
-        marker = str.encode(STARTMARKER)
-        msgType = str.encode(END)
-        size = b'0'
-        parity = b'0'
-        message = marker + msgType + size + parity
-        mySocket.sendto(message, (IP, ADDSEND))
+            # From size, detect if the number (starting on data[4]) has 1 or 2 digits
+            # Then, call updateValues()
+            if data[2] == 2:
+                gameResult = int(data[4])
+            elif data[2] == 3:
+                gameResult = int(data[4] + data[5])
+            updateValues(data[3], gameResult)
+
+            # End of round
+            marker = STARTMARKER
+            msgType = END
+            size = '2' if gameResult > 0 and gameResult < 10 else '3'
+            data = data[3] + str(gameResult)
+            parity = '0'
+            message = str.encode(marker + msgType + size + data + parity)
+            mySocket.sendto(message, (IP, ADDSEND))
 
         # Awaits other players be up-to-date
         awaitEnd = True
@@ -148,11 +149,11 @@ while True:
                     awaitEnd = False
 
         # Sends baton
-        marker = str.encode(STARTMARKER)
-        msgType = str.encode(BATON)
-        size = b'0'
-        parity = b'0'
-        message = marker + msgType + size + parity
+        marker = STARTMARKER
+        msgType = BATON
+        size = '0'
+        parity = '0'
+        message = str.encode(marker + msgType + size + parity)
 
         mySocket.sendto(message, (IP, ADDSEND))
         relayBaton = False
@@ -165,15 +166,15 @@ while True:
 
                 # Message about new bet offer
                 if data[1] == BET:
-                    betDecision = makeBet(data)
+                    betDecision = makeBet(data, betNames)
                     if betDecision:
-                        marker = str.encode(STARTMARKER)
-                        msgType = str.encode(BET)
-                        size = b'3'
+                        marker = STARTMARKER
+                        msgType = BET
+                        size = '3'
                         newValue = int(data[5]) + 1
-                        data = str.encode(NAME + data[4] + str(newValue))
-                        parity = b'0'
-                        message = marker + msgType + size + data + parity
+                        data = NAME + data[4] + str(newValue)
+                        parity = '0'
+                        message = str.encode(marker + msgType + size + data + parity)
                         mySocket.sendto(message, (IP, ADDSEND))
 
                     else:
@@ -182,15 +183,17 @@ while True:
                 # Message to play game
                 elif data[1] == PLAY:
                     if data[3] == NAME:
-                        throwDices()
+                        gameResults = throwDices(data)
 
                         # Send results to relay baton holder
-                        marker = str.encode(STARTMARKER)
-                        msgType = str.encode(RESULT)
-                        size = b'0'
-                        parity = b'0'
-                        message = marker + msgType + size + parity
+                        marker = STARTMARKER
+                        msgType = RESULT
+                        size = '2' if gameResult > 0 and gameResult < 10 else '3'
+                        data = NAME + str(gameResult)
+                        parity = '0'
+                        message = str.encode(marker + msgType + size + data + parity)
                         mySocket.sendto(message, (IP, ADDSEND))
+
                     else:
                         mySocket.sendto(str.encode(data), (IP, ADDSEND))
 
@@ -202,7 +205,10 @@ while True:
                 # Message about end of round
                 # Update values and send it to the next player until it reaches relay baton holder
                 elif data[1] == END:
-                    updateValues()
+                    # From size, detect if the number (starting on data[4]) has 1 or 2 digits
+                    # Then, call updateValues()
+                    gameResult = int(data[4]) if int(data[2]) == 2 else int(data[4] + data[5])
+                    updateValues(data[3], gameResult)
                     mySocket.sendto(str.encode(data), (IP, ADDSEND))
 
                 # Receive relay baton
@@ -212,10 +218,10 @@ while True:
                 # Message to exit
                 # Sends message to next player and exits
                 elif data[1] == EXIT:
-                    marker = str.encode(STARTMARKER)
-                    msgType = str.encode(EXIT)
-                    size = b'0'
-                    parity = b'0'
-                    message = marker + msgType + size + parity
+                    marker = STARTMARKER
+                    msgType = EXIT
+                    size = '0'
+                    parity = '0'
+                    message = str.encode(marker + msgType + size + parity)
                     mySocket.sendto(message, (IP, ADDSEND))
                     sys.exit(0)

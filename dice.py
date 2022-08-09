@@ -3,6 +3,7 @@ import os
 import time
 
 def dice():
+    os.system("clear")
     dices = {
         0: False,
         1: False,
@@ -43,7 +44,7 @@ def dice():
 
     countValues = list(count.values())
 
-    if countValues.count(2) == 1:
+    if countValues.count(2) == 1 and countValues.count(3) != 1:
         print("Par")
         returnVal = 0
 
@@ -75,5 +76,5 @@ def dice():
         print("General")
         returnVal = 7
 
-    time.sleep(2)
+    time.sleep(4)
     return returnVal
