@@ -2,7 +2,7 @@ from random import randint
 import os
 import time
 
-def dice():
+def dice(expected):
     os.system("clear")
     dices = {
         0: False,
@@ -16,6 +16,7 @@ def dice():
 
     for rounds in range(3):
         print("==== NOVA RODADA ====")
+        print("Resultado esperado:", expected)
         for dice in range(5):
             if not dices[dice]:
                 diceValues[dice] = randint(1, 6)
@@ -28,6 +29,8 @@ def dice():
                 decision = input()
                 if decision == "y":
                     dices[dice] = True
+                else:
+                    dices[dice] = False
 
         time.sleep(2)
         os.system("clear")

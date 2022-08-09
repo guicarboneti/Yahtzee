@@ -51,15 +51,16 @@ def chooseBet():
 
 # Game function
 def throwDices(data):
-    gameResult = dice()
+    gameResult = dice(betNames[int(data[4])])
     if gameResult == int(data[4]):
-        return betValues[gameResult] - int(data)[5]
+        print("VOCÊ VENCEU A APOSTA")
+        return betValues[gameResult] - int(data[5])
     else:
+        print("VOCÊ PERDEU A APOSTA")
         return - int(data[5])
 
 def updateValues(name, value):
     chips[name] = chips[name] + value
-    print(chips)
 
 while True:
     if relayBaton:
@@ -124,9 +125,9 @@ while True:
 
             # From size, detect if the number (starting on data[4]) has 1 or 2 digits
             # Then, call updateValues()
-            if data[2] == 2:
+            if data[2] == '2':
                 gameResult = int(data[4])
-            elif data[2] == 3:
+            elif data[2] == '3':
                 gameResult = int(data[4] + data[5])
             updateValues(data[3], gameResult)
 
@@ -134,6 +135,7 @@ while True:
             marker = STARTMARKER
             msgType = END
             size = '2' if gameResult > 0 and gameResult < 10 else '3'
+            print(gameResult)
             data = data[3] + str(gameResult)
             parity = '0'
             message = str.encode(marker + msgType + size + data + parity)
@@ -183,7 +185,7 @@ while True:
                 # Message to play game
                 elif data[1] == PLAY:
                     if data[3] == NAME:
-                        gameResults = throwDices(data)
+                        gameResult = throwDices(data)
 
                         # Send results to relay baton holder
                         marker = STARTMARKER
