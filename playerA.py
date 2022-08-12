@@ -3,6 +3,7 @@ import sys
 import os
 from dice import *
 from makeBet import *
+from chipsTable import *
 
 # Types
 BATON = '1'
@@ -61,7 +62,7 @@ def throwDices(data):
 
 def updateValues(name, value):
     chips[name] = chips[name] + value
-    print(chips)
+    # print(chips)
     time.sleep(4)
 
 while True:
@@ -95,6 +96,7 @@ while True:
             # Plays game
             gameResult = throwDices(data)
             updateValues(NAME, gameResult)
+            drawTable(chips)
 
             # End of round
             marker = STARTMARKER
@@ -115,6 +117,7 @@ while True:
             parity = '0'
             message = str.encode(marker + msgType + size + data + parity)
             mySocket.sendto(message, (IP, ADDSEND))
+            drawTable(chips)
 
             # Awaits return
             awaitRet = True
@@ -132,6 +135,7 @@ while True:
             elif data[2] == '3':
                 gameResult = int(data[4] + data[5])
             updateValues(data[3], gameResult)
+            drawTable(chips)
 
             # End of round
             marker = STARTMARKER
@@ -179,6 +183,7 @@ while True:
                         parity = '0'
                         message = str.encode(marker + msgType + size + data + parity)
                         mySocket.sendto(message, (IP, ADDSEND))
+                        drawTable(chips)
 
                     else:
                         mySocket.sendto(str.encode(data), (IP, ADDSEND))
@@ -196,6 +201,7 @@ while True:
                         parity = '0'
                         message = str.encode(marker + msgType + size + data + parity)
                         mySocket.sendto(message, (IP, ADDSEND))
+                        drawTable(chips)
 
                     else:
                         mySocket.sendto(str.encode(data), (IP, ADDSEND))
@@ -212,6 +218,7 @@ while True:
                     # Then, call updateValues()
                     gameResult = int(data[4]) if int(data[2]) == 2 else int(data[4] + data[5])
                     updateValues(data[3], gameResult)
+                    drawTable(chips)
                     mySocket.sendto(str.encode(data), (IP, ADDSEND))
 
                 # Receive relay baton
