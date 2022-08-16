@@ -3,6 +3,7 @@ import sys
 import os
 from dice import *
 from makeBet import *
+from chipsTable import *
 from parity import *
 
 # Types
@@ -55,6 +56,7 @@ def getRecvData(data):
 
 # Function that shows all possible bets and gets choice
 def chooseBet():
+    os.system("clear")
     print("Escolha uma das seguintes apostas (digite o número):")
     index = 1
     for bet in betNames:
@@ -76,16 +78,17 @@ def throwDices(data):
 
 def updateValues(name, value):
     chips[name] = chips[name] + value
-    print(chips)
+    # print(chips)
     time.sleep(4)
 
+drawTable(chips)
 while True:
     if relayBaton:
-        os.system("clear")
 
         # Makes choice
         choice = chooseBet()
         os.system("clear")
+        print("Esperando adversários...")
 
         # Sends to next
         marker = STARTMARKER
@@ -110,6 +113,7 @@ while True:
             # Plays game
             gameResult = throwDices(data)
             updateValues(NAME, gameResult)
+            drawTable(chips)
 
             # End of round
             marker = STARTMARKER
@@ -130,6 +134,7 @@ while True:
             parity = calcParity(data)
             message = str.encode(marker + msgType + size + data + parity)
             mySocket.sendto(message, (IP, ADDSEND))
+            drawTable(chips)
 
             # Awaits return
             awaitRet = True
@@ -147,6 +152,7 @@ while True:
             elif data[2] == '3':
                 gameResult = int(data[4] + data[5])
             updateValues(data[3], gameResult)
+            drawTable(chips)
 
             # End of round
             marker = STARTMARKER
@@ -194,8 +200,10 @@ while True:
                         parity = calcParity(data)
                         message = str.encode(marker + msgType + size + data + parity)
                         mySocket.sendto(message, (IP, ADDSEND))
+                        drawTable(chips)
 
                     else:
+                        drawTable(chips)
                         mySocket.sendto(str.encode(data), (IP, ADDSEND))
 
                 # Message to play game
@@ -211,6 +219,7 @@ while True:
                         parity = calcParity(data)
                         message = str.encode(marker + msgType + size + data + parity)
                         mySocket.sendto(message, (IP, ADDSEND))
+                        drawTable(chips)
 
                     else:
                         mySocket.sendto(str.encode(data), (IP, ADDSEND))
@@ -227,6 +236,7 @@ while True:
                     # Then, call updateValues()
                     gameResult = int(data[4]) if int(data[2]) == 2 else int(data[4] + data[5])
                     updateValues(data[3], gameResult)
+                    drawTable(chips)
                     mySocket.sendto(str.encode(data), (IP, ADDSEND))
 
                 # Receive relay baton
