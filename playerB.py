@@ -3,7 +3,6 @@ import sys
 import os
 from dice import *
 from makeBet import *
-from parity import *
 
 # Types
 BATON = '1'
@@ -77,7 +76,7 @@ while True:
         msgType = BET
         size = '3'
         data = NAME + str(choice) + '1'
-        parity = calcParity(data)
+        parity = '0'
         message = str.encode(marker + msgType + size + data + parity)
         mySocket.sendto(message, (IP, ADDSEND))
 
@@ -101,7 +100,7 @@ while True:
             msgType = END
             size = '2' if gameResult > 0 and gameResult < 10 else '3'
             data = NAME + str(gameResult)
-            parity = calcParity(data)
+            parity = '0'
             message = str.encode(marker + msgType + size + data + parity)
             mySocket.sendto(message, (IP, ADDSEND))
 
@@ -112,7 +111,7 @@ while True:
             size = '3'
             # 3: name, 4: bet made, 5: cost
             data = data[3] + data[4] + data[5]
-            parity = calcParity(data)
+            parity = '0'
             message = str.encode(marker + msgType + size + data + parity)
             mySocket.sendto(message, (IP, ADDSEND))
 
@@ -138,7 +137,7 @@ while True:
             msgType = END
             size = '2' if gameResult > 0 and gameResult < 10 else '3'
             data = data[3] + str(gameResult)
-            parity = calcParity(data)
+            parity = '0'
             message = str.encode(marker + msgType + size + data + parity)
             mySocket.sendto(message, (IP, ADDSEND))
 
@@ -155,7 +154,7 @@ while True:
         marker = STARTMARKER
         msgType = BATON
         size = '0'
-        parity = calcParity(data)
+        parity = '0'
         message = str.encode(marker + msgType + size + parity)
 
         mySocket.sendto(message, (IP, ADDSEND))
@@ -176,7 +175,7 @@ while True:
                         size = '3'
                         newValue = int(data[5]) + 1
                         data = NAME + data[4] + str(newValue)
-                        parity = calcParity(data)
+                        parity = '0'
                         message = str.encode(marker + msgType + size + data + parity)
                         mySocket.sendto(message, (IP, ADDSEND))
 
@@ -193,7 +192,7 @@ while True:
                         msgType = RESULT
                         size = '2' if gameResult > 0 and gameResult < 10 else '3'
                         data = NAME + str(gameResult)
-                        parity = calcParity(data)
+                        parity = '0'
                         message = str.encode(marker + msgType + size + data + parity)
                         mySocket.sendto(message, (IP, ADDSEND))
 
@@ -224,7 +223,7 @@ while True:
                     marker = STARTMARKER
                     msgType = EXIT
                     size = '0'
-                    parity = calcParity(data)
+                    parity = '0'
                     message = str.encode(marker + msgType + size + parity)
                     mySocket.sendto(message, (IP, ADDSEND))
                     sys.exit(0)
