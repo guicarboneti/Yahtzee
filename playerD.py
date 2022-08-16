@@ -41,6 +41,7 @@ betValues = [2, 3, 4, 5, 7, 7, 10, 15]
 
 # Function that shows all possible bets and gets choice
 def chooseBet():
+    os.system("clear")
     print("Escolha uma das seguintes apostas (digite o número):")
     index = 1
     for bet in betNames:
@@ -63,13 +64,14 @@ def throwDices(data):
 def updateValues(name, value):
     chips[name] = chips[name] + value
 
+drawTable(chips)
 while True:
     if relayBaton:
-        os.system("clear")
 
         # Makes choice
         choice = chooseBet()
         os.system("clear")
+        print("Esperando adversários...")
 
         # Sends to next
         marker = STARTMARKER
@@ -185,6 +187,7 @@ while True:
                         drawTable(chips)
 
                     else:
+                        drawTable(chips)
                         mySocket.sendto(str.encode(data), (IP, ADDSEND))
 
                 # Message to play game
