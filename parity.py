@@ -26,7 +26,8 @@ def calcParity(data):
     s = str(int(''.join(str(x) for x in parity), 2))
     return s
 
+# Returns 1 if parities are equal, 0 instead
 def compareParity(parCalc, parRecv):
-    if (parCalc != parRecv):
+    if (int(parCalc) != int(parRecv)):
         return 0
     return 1

@@ -39,6 +39,20 @@ chips = {
 betNames = ["Par", "Trio", "2 Pares", "Full House", "Seq. Baixa", "Seq. Alta", "Quadra", "General"]
 betValues = [2, 3, 4, 5, 7, 7, 10, 15]
 
+# Function that returns the data field over received data
+def getRecvData(data):
+    recv_size = data[2]
+    if recv_size == '0':
+        data_field = ''
+    elif recv_size == '1':
+        data_field = data[3]
+    elif recv_size == '2':
+        data_field = data[3] + data[4]
+    elif recv_size == '3':
+        data_field = data[3] + data[4] + data[5]
+
+    return data_field
+
 # Function that shows all possible bets and gets choice
 def chooseBet():
     print("Escolha uma das seguintes apostas (digite o número):")
@@ -155,7 +169,7 @@ while True:
         marker = STARTMARKER
         msgType = BATON
         size = '0'
-        parity = calcParity(data)
+        parity = '0'
         message = str.encode(marker + msgType + size + parity)
 
         mySocket.sendto(message, (IP, ADDSEND))
@@ -165,7 +179,7 @@ while True:
         data, addr = mySocket.recvfrom(1024)
         if addr[1] == ADDREC:
             data = data.decode("utf-8")
-            if data[0] == STARTMARKER:
+            if data[0] == STARTMARKER and compareParity(calcParity(getRecvData(data)), int(data[(int(data[2])+3):len(data)])):
 
                 # Message about new bet offer
                 if data[1] == BET:
@@ -224,7 +238,11 @@ while True:
                     marker = STARTMARKER
                     msgType = EXIT
                     size = '0'
-                    parity = calcParity(data)
+                    parity = '0'
                     message = str.encode(marker + msgType + size + parity)
                     mySocket.sendto(message, (IP, ADDSEND))
                     sys.exit(0)
+
+            else:
+                    os.system("clear")
+                    print("Paridade errada")
