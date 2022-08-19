@@ -44,13 +44,15 @@ betValues = [2, 3, 4, 5, 7, 7, 10, 15]
 
 # Function to exit game
 def exit_game():
-    print("Saindo do jogo...")
+    os.system("clear")
     marker = STARTMARKER
     msgType = EXIT
     size = '0'
     parity = '0'
     message = str.encode(marker + msgType + size + parity)
     mySocket.sendto(message, (IP, ADDSEND))
+    drawTable(chips)
+    print("Saindo do jogo...")
     sys.exit(0)
 
 # Handler function for exit case
@@ -100,6 +102,8 @@ def throwDices(data):
 
 def updateValues(name, value):
     chips[name] = chips[name] + value
+    if (chips[name] <= 0):
+        exit_game()
 
 drawTable(chips)
 while True:
@@ -216,7 +220,7 @@ while True:
 
                 # Message about new bet offer
                 if data[1] == BET:
-                    betDecision = makeBet(data, betNames)
+                    betDecision = makeBet(data, betNames, chips[NAME])
                     if betDecision:
                         marker = STARTMARKER
                         msgType = BET
