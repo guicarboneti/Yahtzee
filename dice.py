@@ -52,33 +52,37 @@ def dice(expected):
             print("Par")
             returnVal = 0
 
-        if countValues.count(3) == 1 and countValues.count(2) != 1:
+        elif countValues.count(3) == 1 and countValues.count(2) != 1:
             print("Trio")
             returnVal = 1
 
-        if countValues.count(2) == 2:
+        elif countValues.count(2) == 2:
             print("2 Pares")
             returnVal = 2
 
-        if countValues.count(3) == 1 and countValues.count(2) == 1:
+        elif countValues.count(3) == 1 and countValues.count(2) == 1:
             print("Full House")
             returnVal = 3
 
-        if not 2 in countValues and not 3 in countValues and not 4 in countValues and not 5 in countValues and 1 in diceValues:
+        elif not 2 in countValues and not 3 in countValues and not 4 in countValues and not 5 in countValues and 1 in diceValues:
             print("Seq. Baixa")
             returnVal = 4
 
-        if not 2 in countValues and not 3 in countValues and not 4 in countValues and not 5 in countValues and 6 in diceValues:
+        elif not 2 in countValues and not 3 in countValues and not 4 in countValues and not 5 in countValues and 6 in diceValues:
             print("Seq. Alta")
             returnVal = 5
 
-        if countValues.count(4) == 1:
+        elif countValues.count(4) == 1:
             print("Quadra")
             returnVal = 6
 
-        if countValues.count(5) == 1:
+        elif countValues.count(5) == 1:
             print("General")
             returnVal = 7
+
+        else:
+            print("Resultado inválido")
+            returnVal = 8
 
         time.sleep(4)
         return returnVal
