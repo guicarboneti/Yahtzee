@@ -42,8 +42,7 @@ betNames = ["Par", "Trio", "2 Pares", "Full House", "Seq. Baixa", "Seq. Alta", "
 betValues = [2, 3, 4, 5, 7, 7, 10, 15]
 
 # Function to exit game
-def exit_game():
-    os.system("clear")
+def exit_game(paridade=False):
     marker = STARTMARKER
     msgType = EXIT
     size = '0'
@@ -51,6 +50,8 @@ def exit_game():
     message = str.encode(marker + msgType + size + parity)
     mySocket.sendto(message, (IP, ADDSEND))
     drawTable(chips)
+    if paridade == True:
+        print("Paridade errada")
     print("Saindo do jogo...")
     sys.exit(0)
 
@@ -279,5 +280,4 @@ while True:
                     exit_game()
 
             else:
-                os.system("clear")
-                print("Paridade errada")
+                exit_game(True)
