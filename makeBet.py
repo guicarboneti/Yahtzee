@@ -1,10 +1,12 @@
 import os
 
-def makeBet(data, betNames):
+def makeBet(data, betNames, chips):
     os.system("clear")
+    price = int(data[5]) + 1
+    if (price > chips):
+        return False
     print("Deseja fazer a seguinte aposta? (y/n)")
     print("Aposta: " + betNames[int(data[4])])
-    price = int(data[5]) + 1
     print("Custo: " + str(price))
 
     awaitChoice = True

@@ -1,6 +1,7 @@
 import socket
 import sys
 import os
+import signal
 from dice import *
 from makeBet import *
 from chipsTable import *
@@ -40,6 +41,26 @@ chips = {
 betNames = ["Par", "Trio", "2 Pares", "Full House", "Seq. Baixa", "Seq. Alta", "Quadra", "General"]
 betValues = [2, 3, 4, 5, 7, 7, 10, 15]
 
+# Function to exit game
+def exit_game(paridade=False):
+    marker = STARTMARKER
+    msgType = EXIT
+    size = '0'
+    parity = '0'
+    message = str.encode(marker + msgType + size + parity)
+    mySocket.sendto(message, (IP, ADDSEND))
+    drawTable(chips)
+    if paridade == True:
+        print("Paridade errada")
+    print("Saindo do jogo...")
+    sys.exit(0)
+
+# Handler function for exit case
+def signal_handler(sig, frame):
+    exit_game()
+
+signal.signal(signal.SIGINT, signal_handler)
+
 # Function that returns the data field over received data
 def getRecvData(data):
     recv_size = data[2]
@@ -69,6 +90,9 @@ def chooseBet():
 # Game function
 def throwDices(data):
     gameResult = dice(betNames[int(data[4])])
+    if gameResult == -1:
+        return signal_handler
+
     if gameResult == int(data[4]):
         print("VOCÊ VENCEU A APOSTA")
         return betValues[gameResult] - int(data[5])
@@ -78,7 +102,8 @@ def throwDices(data):
 
 def updateValues(name, value):
     chips[name] = chips[name] + value
-    # print(chips)
+    if (chips[name] <= 0):
+        exit_game()
 
 drawTable(chips)
 while True:
@@ -106,6 +131,8 @@ while True:
                 data = data.decode("utf-8")
                 if data[0] == STARTMARKER and data[1] == BET:
                     awaitBet = False
+                if data[0] == STARTMARKER and data[1] == EXIT:
+                    signal_handler(0,0)
 
         # Decides if it bets or passes to gambler
         if data[3] == NAME:
@@ -143,6 +170,8 @@ while True:
                     data = data.decode("utf-8")
                     if data[0] == STARTMARKER and data[1] == RESULT:
                         awaitRet = False
+                    if data[0] == STARTMARKER and data[1] == EXIT:
+                        signal_handler(0,0)
 
             # From size, detect if the number (starting on data[4]) has 1 or 2 digits
             # Then, call updateValues()
@@ -170,6 +199,8 @@ while True:
                 data = data.decode("utf-8")
                 if data[0] == STARTMARKER and data[1] == END:
                     awaitEnd = False
+                if data[0] == STARTMARKER and data[1] == EXIT:
+                    signal_handler(0,0)
 
         # Sends baton
         marker = STARTMARKER
@@ -189,7 +220,7 @@ while True:
 
                 # Message about new bet offer
                 if data[1] == BET:
-                    betDecision = makeBet(data, betNames)
+                    betDecision = makeBet(data, betNames, chips[NAME])
                     if betDecision:
                         marker = STARTMARKER
                         msgType = BET
@@ -245,15 +276,7 @@ while True:
                 # Message to exit
                 # Sends message to next player and exits
                 elif data[1] == EXIT:
-                    marker = STARTMARKER
-                    msgType = EXIT
-                    size = '0'
-                    parity = '0'
-                    message = str.encode(marker + msgType + size + parity)
-                    mySocket.sendto(message, (IP, ADDSEND))
-                    sys.exit(0)
-
+                    exit_game()
 
             else:
-                    os.system("clear")
-                    print("Paridade errada")
+                exit_game(True)
