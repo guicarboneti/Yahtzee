@@ -34,10 +34,10 @@ mySocket.bind((IP, PORT))
 
 # Game variables
 chips = {
-    "A": 20,
-    "B": 20,
-    "C": 20,
-    "D": 20
+    "A": 7,
+    "B": 7,
+    "C": 7,
+    "D": 7
 }
 betNames = ["Par", "Trio", "2 Pares", "Full House", "Seq. Baixa", "Seq. Alta", "Quadra", "General"]
 betValues = [2, 3, 4, 5, 7, 7, 10, 15]
